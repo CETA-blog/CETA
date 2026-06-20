@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>神秘塔罗牌占卜 | 灵境启示</title>
+    <!-- 引入Google Fonts & Font Awesome 6 (免费图标库) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none; /* 提升占卜沉浸感，避免文字被轻易框选，不影响交互 */
+        }
+        body {
+            min-height: 100vh;
+            background: radial-gradient(ellipse at 20% 30%, #1a0e2b, #0b0715);
+            font-family: 'Inter', sans-serif;
+            color: #f3e9d2;
+            padding: 1.5rem;
+            position: relative;
+            overflow-x: hidden;
+        }
+        /* 星尘装饰 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(2px 2px at 20px 30px, #fff, rgba(0,0,0,0)),
+                              radial-gradient(1px 1px at 70px 180px, #f3e6b0, rgba(0,0,0,0));
+            background-size: 200px 200px, 150px 150px;
+            background-repeat: repeat;
+            opacity: 0.2;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+            backdrop-filter: blur(0px);
+        }
+        /* 头部区域 */
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+        .header h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 3rem;
+            font-weight: 600;
+            letter-spacing: 4px;
+            background: linear-gradient(135deg, #ecd78b, #c7a252);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        .header p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+        /* 占卜模式切换卡片 */
+        .mode-selector {
+            display: flex;
+            justify-content: center;
+            gap: 1.2rem;
+            margin: 1.5rem 0 2rem;
+        }
+        .mode-btn {
+            background: rgba(20, 12, 36, 0.7);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(212, 175, 55, 0.5);
+            padding: 0.7rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 60px;
+            color: #e9d6a7;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .mode-btn i {
+            margin-right: 8px;
+        }
+        .mode-btn.active {
+            background: linear-gradient(135deg, #c7a252, #9e7a3e);
+            color: #0e071c;
+            border-color: #f5e1a0;
+            box-shadow: 0 0 12px rgba(199, 162, 82, 0.6);
+            text-shadow: none;
+        }
+        .mode-btn:hover:not(.active) {
+            background: rgba(80, 55, 120, 0.6);
+            border-color: #e1c16e;
+            transform: translateY(-2px);
+        }
+        /* 抽牌结果展示区 (神秘之域) */
+        .cards-area {
+            background: rgba(10, 6, 20, 0.55);
+            backdrop-filter: blur(10px);
+            border-radius: 48px;
+            padding: 2rem 1.5rem;
+            margin: 1.5rem 0;
+            min-height: 480px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            box-shadow: 0 20px 35px -12px black;
+            transition: all 0.3s;
+        }
+        .results-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: stretch;
+            gap: 2rem;
+        }
+        /* 塔罗卡片样式 */
+        .tarot-card {
+            background: linear-gradient(145deg, #221c30, #140e21);
+            width: 280px;
+            min-width: 250px;
+            flex: 1 0 260px;
+            border-radius: 28px;
+            padding: 1.2rem 1rem 1.8rem;
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s;
+            border: 1px solid rgba(230, 200, 120, 0.5);
+            box-shadow: 0 15px 25px -8px rgba(0,0,0,0.5);
+            backdrop-filter: blur(2px);
+            text-align: center;
+        }
+        .tarot-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 30px -10px black;
+            border-color: #e9c77a;
+        }
+        .card-position {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: rgba(212, 175, 55, 0.2);
+            display: inline-block;
+            padding: 0.2rem 1rem;
+            border-radius: 20px;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            color: #e9cf8c;
+        }
+        .card-name {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.9rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+            letter-spacing: 2px;
+            word-break: break-word;
+        }
+        .card-orientation {
+            font-size: 1rem;
+            margin: 0.3rem 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: rgba(0,0,0,0.4);
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 0.2rem 1rem;
+            border-radius: 40px;
+        }
+        .orientation-upright {
+            color: #b9e6b3;
+        }
+        .orientation-reversed {
+            color: #f3a683;
+        }
+        .card-meaning {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            padding: 0 0.5rem;
+            color: #e2d8c0;
+            border-top: 1px dashed rgba(212, 175, 55, 0.4);
+            padding-top: 1rem;
+        }
+        .card-icon {
+            font-size: 2.2rem;
+            margin-bottom: 0.2rem;
+            opacity: 0.7;
+        }
+        /* 占卜按钮 */
+        .divine-action {
+            text-align: center;
+            margin: 1.5rem 0 1rem;
+        }
+        .btn-divine {
+            background: radial-gradient(circle at 30% 10%, #e9c781, #b8862c);
+            border: none;
+            padding: 1rem 2.8rem;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border-radius: 60px;
+            color: #1c102e;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 2px;
+            box-shadow: 0 6px 0 #6e4a1a;
+            transform: translateY(-2px);
+        }
+        .btn-divine:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #6e4a1a;
+        }
+        .btn-divine i {
+            margin-right: 10px;
+        }
+        .reset-info {
+            text-align: center;
+            font-size: 0.75rem;
+            opacity: 0.6;
+            margin-top: 20px;
+            font-style: italic;
+        }
+        /* 空状态占位符 */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #dacba4;
+        }
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        .empty-state p {
+            font-size: 1rem;
+        }
+        /* 响应式 */
+        @media (max-width: 700px) {
+            .tarot-card {
+                width: 100%;
+                max-width: 320px;
+            }
+            .header h1 {
+                font-size: 2.2rem;
+            }
+            .mode-btn {
+                padding: 0.5rem 1.2rem;
+                font-size: 0.85rem;
+            }
+            .cards-area {
+                padding: 1.2rem;
+            }
+        }
+        /* 加载/洗牌微动画 */
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .loading-shimmer {
+            background: linear-gradient(90deg, #2a1e3e, #4a3868, #2a1e3e);
+            background-size: 200% 100%;
+            animation: shimmer 0.6s linear infinite;
+            border-radius: 28px;
+        }
+        footer {
+            text-align: center;
+            font-size: 0.7rem;
+            margin-top: 2rem;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1><i class="fas fa-moon"></i> 塔罗·灵镜占卜 <i class="fas fa-star-of-life"></i></h1>
+        <p>大阿卡纳的智慧 · 倾听命运的私语</p>
+    </div>
+    <div class="mode-selector">
+        <button class="mode-btn active" data-mode="single"><i class="fas fa-crown"></i> 单张指引</button>
+        <button class="mode-btn" data-mode="three"><i class="fas fa-clock"></i> 三张牌阵 (过去·现在·未来)</button>
+    </div>
+    <div class="cards-area" id="cardsArea">
+        <div class="empty-state" id="emptyState">
+            <i class="fas fa-hand-sparkles"></i>
+            <p>轻触「开牌占卜」<br>让神秘之光为你揭示前路</p>
+        </div>
+        <div id="resultsContainer" class="results-container"></div>
+    </div>
+    <div class="divine-action">
+        <button class="btn-divine" id="divineBtn"><i class="fas fa-tarot"></i> 开牌 · 占卜</button>
+    </div>
+    <div class="reset-info">
+        <i class="fas fa-sync-alt"></i> 每次占卜都将重新洗牌，每张牌仅出现一次，正逆位随机显现。
+    </div>
+    <footer>
+        ✦ 心诚则灵  ✦ 大阿卡纳22祕仪 ✦
+    </footer>
+</div>
+<script>
+    // ---------- 构建塔罗牌数据 (22张大阿卡纳 + 正逆位释义) ----------
+    const tarotCardsData = [
+        { name: "愚者", upright: "新的开始，纯真冒险，无限潜能。抛开束缚，跟随直觉踏上旅程。", reversed: "鲁莽冲动，逃避责任，漫无目的。停下脚步，思考真正方向。" },
+        { name: "魔术师", upright: "创造力，资源掌握，显化目标。你拥有实现梦想的一切工具。", reversed: "操纵欺骗，潜能未发，犹豫不决。重新连接内在力量。" },
+        { name: "女祭司", upright: "直觉，奥秘，沉静智慧。倾听内心低语，信任潜意识。", reversed: "压抑直觉，隐藏情绪，表面肤浅。打开内心之门。" },
+        { name: "女皇", upright: "丰饶，母性，自然之美。滋养自己与所爱，享受丰盛。", reversed: "依赖过度，创造力受阻，家庭失衡。找回内在养育力。" },
+        { name: "皇帝", upright: "权威，结构，领导力。建立秩序，稳固基础。", reversed: "专制，控制欲，缺乏纪律。软化权威姿态。" },
+        { name: "教皇", upright: "传统，信仰，精神指引。寻求良师或遵循规范。", reversed: "叛逆，非传统，过度教条。走出自己的真理之路。" },
+        { name: "恋人", upright: "爱，和谐，价值观选择。面对重要关系或抉择。", reversed: "失衡，分离，冲突。重新审视承诺与内在需求。" },
+        { name: "战车", upright: "意志力，胜利，自我控制。驾驭冲突，迈向成功。", reversed: "失控，侵略，缺乏方向。缓和冲动，凝聚目标。" },
+        { name: "力量", upright: "勇气，耐心，柔克刚。以爱心驾驭内在兽性。", reversed: "软弱，自我怀疑，恐惧。找回内在坚韧。" },
+        { name: "隐士", upright: "内省，孤独，智慧之灯。退隐寻求答案。", reversed: "孤立，逃避，拒绝指引。敞开接受帮助。" },
+        { name: "命运之轮", upright: "转折，机遇，命运流转。顺其自然迎接改变。", reversed: "厄运，抗拒变化，坏循环。调整心态，迎接新周期。" },
+        { name: "正义", upright: "公平，因果，诚实。做出公正决定。", reversed: "不公，推卸责任，谎言。直面过错，寻求平衡。" },
+        { name: "倒吊人", upright: "牺牲，换个角度，等待。以退为进。", reversed: "白白牺牲，固执，拖延。离开困境，行动改变。" },
+        { name: "死神", upright: "结束，转变，新生。告别旧有，迎来蜕变。", reversed: "抗拒改变，死守过去，停滞。允许结束才能开始。" },
+        { name: "节制", upright: "平衡，调和，耐心。融合对立面，中庸之道。", reversed: "失当，冲突，急躁。静心调适自我。" },
+        { name: "恶魔", upright: "束缚，物质欲望，执念。认清阴影，打破枷锁。", reversed: "挣脱束缚，觉醒，重获自由。摆脱控制关系。" },
+        { name: "塔", upright: "突变，崩塌，醒悟。旧秩序瓦解，重建新生。", reversed: "避免灾难，勉强维持，延缓崩毁。主动改变可减轻冲击。" },
+        { name: "星星", upright: "希望，疗愈，灵感。保持信心，宇宙眷顾。", reversed: "绝望，失落，缺乏灵感。重新点燃内心火花。" },
+        { name: "月亮", upright: "幻觉，恐惧，潜意识。面对不安，相信直觉。", reversed: "拨云见日，谎言揭露，释怀。走出迷雾。" },
+        { name: "太阳", upright: "喜悦，成功，生命力。一切明朗，充满活力。", reversed: "暂时阴霾，延迟满足，过于乐观。调整步调，阳光终在。" },
+        { name: "审判", upright: "觉醒，重生，宽恕。召唤更高使命。", reversed: "自我怀疑，逃避召唤，不肯面对。聆听内心真实声音。" },
+        { name: "世界", upright: "完成，完整，圆满。达成目标，享受成就。", reversed: "未完成，缺乏承诺，延迟成功。坚持到底。" }
+    ];
+    // 当前模式: 'single' 或 'three'
+    let currentMode = 'single';
+    // 当前牌库 (剩余未抽的牌，每次抽牌无放回，更真实)
+    let currentDeck = [];
+    // DOM 元素
+    const resultsContainer = document.getElementById('resultsContainer');
+    const emptyStateDiv = document.getElementById('emptyState');
+    const divineBtn = document.getElementById('divineBtn');
+    const modeBtns = document.querySelectorAll('.mode-btn');
+    // 初始化牌堆 (深拷贝完整22张牌)
+    function initDeck() {
+        // 返回新的卡片数组副本 (每个对象单独复制)
+        return tarotCardsData.map(card => ({ ...card }));
+    }
+    // 重置牌堆 (洗牌)
+    function resetAndShuffleDeck() {
+        currentDeck = initDeck();
+        // Fisher-Yates 随机洗牌，增加随机感
+        for (let i = currentDeck.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [currentDeck[i], currentDeck[j]] = [currentDeck[j], currentDeck[i]];
+        }
+    }
+    // 从当前牌堆中抽取不重复的 n 张牌 (每次抽完移除, 且随机正逆位)
+    function drawCardsWithoutReplacement(n) {
+        if (n > currentDeck.length) {
+            console.warn("牌堆不足，重新洗牌充能");
+            resetAndShuffleDeck();
+            if (n > currentDeck.length) n = currentDeck.length; // 保底
+        }
+        const drawn = [];
+        for (let i = 0; i < n; i++) {
+            if (currentDeck.length === 0) {
+                // 意外情况，重新洗牌补充
+                resetAndShuffleDeck();
+            }
+            // 随机抽取一张 (剩余牌堆中)
+            const randomIndex = Math.floor(Math.random() * currentDeck.length);
+            const card = currentDeck[randomIndex];
+            // 决定正逆位 (随机 true=正位, false=逆位)
+            const isReversed = Math.random() < 0.5;
+            drawn.push({
+                cardData: card,
+                isReversed: isReversed,
+                meaningText: isReversed ? card.reversed : card.upright
+            });
+            // 移除已抽牌 (无放回)
+            currentDeck.splice(randomIndex, 1);
+        }
+        return drawn;
+    }
+    // 清空结果显示，展示占卜空状态
+    function clearResults(showEmpty = true) {
+        resultsContainer.innerHTML = '';
+        if (showEmpty) {
+            emptyStateDiv.style.display = 'block';
+        } else {
+            emptyStateDiv.style.display = 'none';
+        }
+    }
+    // 为三张牌分配位置标签
+    function getPositionLabel(index, mode) {
+        if (mode === 'single') return "✨ 当下指引 ✨";
+        const positions = [" 过 去", "☀️ 现 在", " 未 来"];
+        return positions[index] || `位置 ${index+1}`;
+    }
+    // 渲染抽出的牌组
+    function renderCards(drawnCards, mode) {
+        if (!drawnCards || drawnCards.length === 0) {
+            clearResults(true);
+            return;
+        }
+        emptyStateDiv.style.display = 'none';
+        resultsContainer.innerHTML = '';
+        drawnCards.forEach((item, idx) => {
+            const { cardData, isReversed, meaningText } = item;
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'tarot-card';
+            // 简易图标映射（根据牌名字的首个字符或特质）
+            let iconHtml = '<i class="fas fa-eye"></i>';
+            if (cardData.name.includes("愚者")) iconHtml = '<i class="fas fa-feather-alt"></i>';
+            else if (cardData.name.includes("魔术师")) iconHtml = '<i class="fas fa-magic"></i>';
+            else if (cardData.name.includes("女祭司")) iconHtml = '<i class="fas fa-moon"></i>';
+            else if (cardData.name.includes("女皇")) iconHtml = '<i class="fas fa-crown"></i>';
+            else if (cardData.name.includes("皇帝")) iconHtml = '<i class="fas fa-landmark"></i>';
+            else if (cardData.name.includes("教皇")) iconHtml = '<i class="fas fa-church"></i>';
+            else if (cardData.name.includes("恋人")) iconHtml = '<i class="fas fa-heart"></i>';
+            else if (cardData.name.includes("战车")) iconHtml = '<i class="fas fa-chariot"></i>';
+            else if (cardData.name.includes("力量")) iconHtml = '<i class="fas fa-fist-raised"></i>';
+            else if (cardData.name.includes("隐士")) iconHtml = '<i class="fas fa-user-astronaut"></i>';
+            else if (cardData.name.includes("命运之轮")) iconHtml = '<i class="fas fa-sync-alt"></i>';
+            else if (cardData.name.includes("正义")) iconHtml = '<i class="fas fa-balance-scale"></i>';
+            else if (cardData.name.includes("倒吊人")) iconHtml = '<i class="fas fa-cross"></i>';
+            else if (cardData.name.includes("死神")) iconHtml = '<i class="fas fa-skull"></i>';
+            else if (cardData.name.includes("节制")) iconHtml = '<i class="fas fa-water"></i>';
+            else if (cardData.name.includes("恶魔")) iconHtml = '<i class="fas fa-dragon"></i>';
+            else if (cardData.name.includes("塔")) iconHtml = '<i class="fas fa-bolt"></i>';
+            else if (cardData.name.includes("星星")) iconHtml = '<i class="fas fa-star"></i>';
+            else if (cardData.name.includes("月亮")) iconHtml = '<i class="fas fa-moon"></i>';
+            else if (cardData.name.includes("太阳")) iconHtml = '<i class="fas fa-sun"></i>';
+            else if (cardData.name.includes("审判")) iconHtml = '<i class="fas fa-gavel"></i>';
+            else if (cardData.name.includes("世界")) iconHtml = '<i class="fas fa-globe-americas"></i>';
+            else iconHtml = '<i class="fas fa-tarot"></i>';
+            const orientationText = isReversed ? '逆位 ⚡' : '正位 ✨';
+            const orientationClass = isReversed ? 'orientation-reversed' : 'orientation-upright';
+            const positionLabel = getPositionLabel(idx, mode);
+            cardDiv.innerHTML = `
+                <div class="card-position">${positionLabel}</div>
+                <div class="card-icon">${iconHtml}</div>
+                <div class="card-name">${cardData.name}</div>
+                <div class="card-orientation ${orientationClass}">
+                    <i class="fas ${isReversed ? 'fa-arrow-down' : 'fa-arrow-up'}"></i>
+                    <span>${orientationText}</span>
+                </div>
+                <div class="card-meaning">“ ${meaningText} ”</div>
+            `;
+            resultsContainer.appendChild(cardDiv);
+        });
+        // 添加细微的占卜额外灵气短语（在末尾添加一行小彩蛋）
+        if (mode === 'single') {
+            const blessing = document.createElement('div');
+            blessing.style.width = '100%';
+            blessing.style.textAlign = 'center';
+            blessing.style.marginTop = '1.5rem';
+            blessing.style.fontSize = '0.8rem';
+            blessing.style.fontStyle = 'italic';
+            blessing.style.opacity = '0.8';
+            blessing.innerHTML = '<i class="fas fa-feather"></i> 牌意如镜，照见心境 <i class="fas fa-feather"></i>';
+            resultsContainer.appendChild(blessing);
+        } else {
+            const footnote = document.createElement('div');
+            footnote.style.width = '100%';
+            footnote.style.textAlign = 'center';
+            footnote.style.marginTop = '1.5rem';
+            footnote.style.fontSize = '0.8rem';
+            footnote.style.opacity = '0.7';
+            footnote.innerHTML = '✧ 过去种因，当下抉择，未来可期 ✧';
+            resultsContainer.appendChild(footnote);
+        }
+    }
+    // 主要占卜逻辑：洗牌 (重置牌库完全) -> 抽对应数量的牌 -> 渲染
+    function performDivination() {
+        // 增加洗牌仪式感小动画 (添加shimmer效果临时)
+        const cardsArea = document.getElementById('cardsArea');
+        const originalBg = cardsArea.style.background;
+        cardsArea.classList.add('loading-shimmer');
+        divineBtn.disabled = true;
+        divineBtn.style.opacity = '0.7';
+        // 模拟轻微延迟，给用户仪式感（可优化体验）
+        setTimeout(() => {
+            // 1. 重置牌堆（全新洗牌，清空之前抽取记录）
+            resetAndShuffleDeck();
+            // 2. 根据模式抽取张数
+            let drawCount = currentMode === 'single' ? 1 : 3;
+            // 安全上限（不会超过22，但重置后22张足够）
+            if (drawCount > currentDeck.length) {
+                // 极端情况: 重置后总有22张，但无放回抽取1或3绝对足够
+resetAndShuffleDeck();
+            }
+            const drawnResults = drawCardsWithoutReplacement(drawCount);
+            // 3. 渲染结果
+            renderCards(drawnResults, currentMode);
+            // 移除动画 & 恢复按钮
+            cardsArea.classList.remove('loading-shimmer');
+            divineBtn.disabled = false;
+            divineBtn.style.opacity = '1';
+        }, 280);
+    }
+    // 切换模式处理
+    function setMode(mode) {
+        currentMode = mode;
+        // 更新按钮样式
+        modeBtns.forEach(btn => {
+            const btnMode = btn.getAttribute('data-mode');
+            if (btnMode === mode) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        // 清空当前结果区域，显示空状态，并且重置牌堆（确保下次占卜全新）
+        clearResults(true);
+        // 重置牌堆占卜池但不清洗也无伤大雅，为了心理洁癖重置牌堆引用但不自动抽牌
+        resetAndShuffleDeck();
+        // 另可把牌堆重置为完整洗牌状态，为了用户再次占卜准备
+        // 显示提示模式切换完成
+        const tempMsg = document.createElement('div');
+        tempMsg.style.position = 'fixed';
+        tempMsg.style.bottom = '20px';
+        tempMsg.style.left = '50%';
+        tempMsg.style.transform = 'translateX(-50%)';
+        tempMsg.style.backgroundColor = '#c7a252';
+        tempMsg.style.color = '#1a0e2b';
+        tempMsg.style.padding = '8px 18px';
+        tempMsg.style.borderRadius = '40px';
+        tempMsg.style.fontSize = '0.8rem';
+        tempMsg.style.zIndex = '999';
+        tempMsg.style.fontWeight = 'bold';
+        tempMsg.innerHTML = mode === 'single' ? '✨ 已切换至 单张指引 ✨' : '⏳ 已切换至 三张时间之流 ⏳';
+        document.body.appendChild(tempMsg);
+        setTimeout(() => tempMsg.remove(), 1500);
+    }
+    // 绑定事件与初始化
+    function init() {
+        // 初始洗牌
+        resetAndShuffleDeck();
+        clearResults(true);
+        // 添加占卜按钮事件
+        divineBtn.addEventListener('click', performDivination);
+        // 模式切换监听
+        modeBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const mode = btn.getAttribute('data-mode');
+                if (mode === currentMode) return;
+                setMode(mode);
+            });
+        });
+        // 可选: 初次加载可显示精美默认空牌，不自动占卜
+        // 小彩蛋：控制台输出神秘信息
+        console.log("%c 塔罗灵镜已开启 | 心诚则灵 ", "color: #e9c77a; font-size: 16px; font-family: monospace;");
+    }
+    // 启动一切
+    init();
+</script>
+</body>
+</html>
+
